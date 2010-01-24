@@ -18,7 +18,7 @@ function load(photo) {
       var h = 'http://farm'+p.farm+'.static.flickr.com/'+p.server+'/'+p.id+'_'+p.secret+'_b.jpg';
     	document.getElementById('content').innerHTML = "<img src='"+h+"'/>";
     	var info = document.getElementById('info');
-    	info.innerText = p.title._content || 'untitled';
+    	info.innerText = (p.title._content || 'untitled') + ' by ' + (p.owner.realname || p.owner.username);
     	info.setAttribute('href', p.urls.url[0]._content)
     }
   }
