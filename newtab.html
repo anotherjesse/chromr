@@ -3,34 +3,45 @@
 <title>Interestingness</title> 
 <script>
  
-function random() {
-  function load(photo) {
-    var key = '08be316ee5aaa43c0fb40c3d496d4a3c';
-    var url = "http://api.flickr.com/services/rest/?format=json&nojsoncallback=1&method=flickr.photos.getInfo&api_key="+key+"&photo_id="+photo.id;
-    var req = new XMLHttpRequest();
-    req.open('GET', url, true);
-    req.onreadystatechange = function() {
-        if (req.readyState == 4) {
-          var res = JSON.parse(req.responseText)
-          console.log(res)
-          p = res.photo
-          var h = 'http://farm'+p.farm+'.static.flickr.com/'+p.server+'/'+p.id+'_'+p.secret+'_b.jpg';
-        	document.getElementById('content').innerHTML = "<img src='"+h+"'/>";
-        	var info = document.getElementById('info');
-        	info.innerText = p.title._content || 'untitled';
-        	info.setAttribute('href', p.urls.url[0]._content)
-        }
+var current_idx;
+
+function load(photo) {
+  var key = '08be316ee5aaa43c0fb40c3d496d4a3c';
+  var url = "http://api.flickr.com/services/rest/?format=json&nojsoncallback=1&method=flickr.photos.getInfo&api_key="+key+"&photo_id="+photo.id;
+  var req = new XMLHttpRequest();
+  req.open('GET', url, true);
+  req.onreadystatechange = function() {
+    if (req.readyState == 4) {
+      var res = JSON.parse(req.responseText)
+      console.log(res)
+      p = res.photo
+      var h = 'http://farm'+p.farm+'.static.flickr.com/'+p.server+'/'+p.id+'_'+p.secret+'_b.jpg';
+    	document.getElementById('content').innerHTML = "<img src='"+h+"'/>";
+    	var info = document.getElementById('info');
+    	info.innerText = p.title._content || 'untitled';
+    	info.setAttribute('href', p.urls.url[0]._content)
     }
-    req.send();
   }
-  
-  
+  req.send();
+}
+
+function init() {
   var photos = chrome.extension.getBackgroundPage().photos;
-  var p = photos[Math.floor(Math.random()*photos.length)];
-  load(p);
+  current_idx = Math.floor(Math.random()*photos.length);
+  load(photos[current_idx]);
+  document.addEventListener('keypress', function(e) {
+    if (e.keyCode==106) {
+      current_idx = (current_idx + 1) % photos.length;
+      load(photos[current_idx]);
+    }
+    if (e.keyCode==107) {
+      current_idx = (current_idx - 1 + photos.length) % photos.length;
+      load(photos[current_idx]);
+    }
+  }, true);
 };
 
-window.onload = random;
+window.onload = init;
  
  
 </script> 
