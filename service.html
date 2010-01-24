@@ -1,0 +1,29 @@
+<html>
+<script type="text/javascript">
+
+  var photos = [];
+  
+  function update() { 
+    var key = '08be316ee5aaa43c0fb40c3d496d4a3c';
+    var url = "http://api.flickr.com/services/rest/?format=json&nojsoncallback=1&method=flickr.interestingness.getList&extras=media&api_key="+key;
+    var req = new XMLHttpRequest();
+    req.open('GET', url, true);
+    req.onreadystatechange = function() {
+        if (req.readyState == 4) {
+          var res = JSON.parse(req.responseText);
+          photos = [];
+          res.photos.photo.forEach(function(p) {
+            if (p.media == 'photo') {
+              photos.push(p)
+            }
+          }); 
+        }
+    }
+    req.send();
+  }
+
+  setInterval(update, 60*60*1000); // update every hour
+  update();
+
+</script>
+</html>
