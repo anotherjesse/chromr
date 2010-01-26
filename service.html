@@ -2,29 +2,48 @@
 <script type="text/javascript">
 
   var photos = [];
+  var key = '08be316ee5aaa43c0fb40c3d496d4a3c';
   
-  function update() { 
-    var key = '08be316ee5aaa43c0fb40c3d496d4a3c';
-    var url = "http://api.flickr.com/services/rest/?format=json&nojsoncallback=1&method=flickr.photos.getContactsPublicPhotos&count=50&user_id=44124365282@N01&api_key="+key;
+  function flickr(params, cb) {
+    var qs = ["format=json", "nojsoncallback=1", "api_key="+key];
+    for (var k in params) {
+      qs.push(k + '=' + encodeURIComponent(params[k]));
+    }
+    
+    var url = "http://api.flickr.com/services/rest/?" + qs.join("&");
+
     var req = new XMLHttpRequest();
     req.open('GET', url, true);
     req.onreadystatechange = function() {
-        if (req.readyState == 4) {
-          var res = JSON.parse(req.responseText);
-          photos = [];
-          photos = res.photos.photo;
-          // res.photos.photo.forEach(function(p) {
-          //   if (p.media == 'photo') {
-          //     photos.push(p)
-          //   }
-          // }); 
-        }
+      if (req.readyState == 4) {
+        cb(JSON.parse(req.responseText));
+      }
     }
-    req.send();
+    req.send();    
+  }
+  
+  function update() {
+    flickr({
+      method: 'flickr.photos.getContactsPublicPhotos',
+      count: 50,
+      user_id: '44124365282@N01'},
+    function(json) {
+      photos = json.photos.photo;
+    });
+    // flickr.favorites.getPublicList&user_id=______&extras=media
   }
 
   setInterval(update, 60*60*1000); // update every hour
   update();
+
+  function isSetup() {
+    return localStorage.user_id != null;
+  }
+  
+  function setUser(userName) {
+    
+    
+  }
 
 </script>
 </html>

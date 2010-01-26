@@ -2,33 +2,33 @@
 <head> 
 <title>Interestingness</title> 
 <script>
- 
+
 var current_idx;
 
-function load(photo) {
-  var key = '08be316ee5aaa43c0fb40c3d496d4a3c';
-  var url = "http://api.flickr.com/services/rest/?format=json&nojsoncallback=1&method=flickr.photos.getInfo&api_key="+key+"&photo_id="+photo.id;
-  var req = new XMLHttpRequest();
-  req.open('GET', url, true);
-  req.onreadystatechange = function() {
-    if (req.readyState == 4) {
-      var res = JSON.parse(req.responseText)
-      console.log(res)
-      p = res.photo
-      var h = 'http://farm'+p.farm+'.static.flickr.com/'+p.server+'/'+p.id+'_'+p.secret+'_b.jpg';
-    	document.getElementById('content').innerHTML = "<img src='"+h+"'/>";
-    	var info = document.getElementById('info');
-    	info.innerText = (p.title._content || 'untitled') + ' by ' + (p.owner.realname || p.owner.username);
-    	info.setAttribute('href', p.urls.url[0]._content)
-    }
-  }
-  req.send();
+function show(photo) {
+  var h = 'http://farm'+photo.farm+'.static.flickr.com/'+photo.server+'/'+photo.id+'_'+photo.secret+'_b.jpg';
+	document.getElementById('content').innerHTML = "<img src='"+h+"'/>";
+	var info = document.getElementById('info');
+	info.innerText = (photo.title._content || 'untitled') + ' by ' + (photo.owner.realname || photo.owner.username);
+	info.setAttribute('href', photo.urls.url[0]._content)
 }
 
-function init() {
+function load(photo) {
+  svc.flickr({
+    method: 'flickr.photos.getInfo',
+    photo_id: photo.id
+  }, function(json) {
+    show(json.photo);
+  })
+}
+
+function chooseRandom() {
   var photos = chrome.extension.getBackgroundPage().photos;
   current_idx = Math.floor(Math.random()*photos.length);
   load(photos[current_idx]);
+}
+
+function addListeners() {
   document.addEventListener('keypress', function(e) {
     if (e.keyCode==106) {
       current_idx = (current_idx + 1) % photos.length;
@@ -41,45 +41,37 @@ function init() {
   }, true);
 };
 
-window.onload = init;
- 
+window.onload = function() {
+  svc = chrome.extension.getBackgroundPage();
+  addListeners();
+  chooseRandom();
+  // console.log(svc.isSetup());
+};
+
  
 </script> 
 <style>
+
 * {
     margin: 0;
     padding: 0;
 }
 
-html, body, #bg, #bg table, #bg td {
-    height:100%;
-    width:100%;
+html, body {
     overflow:hidden;
-    background: #000;
+    background: #000;    
 }
 
-#bg {
-    position: fixed;
+table {  
+  height: 100%;  
+  width: 100%;
 }
 
-#bg div {
-    height:200%;
-    left:-50%;
-    position:absolute;
-    top:-50%;
-    width:200%;
+img {
+  max-height: 90%;
+  max-width: 90%;
 }
 
-#bg td {
-    text-align:center;
-    vertical-align:middle;
-}
-
-#bg img {
-    margin:0 auto;
-    min-height:50%;
-    min-width:50%;
-}
 #info {
   background: rgba(0,0,0,0.5);
   bottom: 50px;
@@ -92,16 +84,10 @@ html, body, #bg, #bg table, #bg td {
 }
 </style> 
 </head> 
-<body> 
-  <div id="bg">
-      <div>
-          <table cellspacing="0" cellpadding="0">
-              <tr>
-                  <td id="content"></td>
-              </tr>
-          </table>
-      </div>
-  </div>
+<body>
+  <table>
+    <tr><td id="content"></td></tr>
+  </table>
   <a id="info"></a>
 </body> 
 </html>
