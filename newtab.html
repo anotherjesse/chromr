@@ -3,40 +3,27 @@
 <title>Interestingness</title> 
 <script>
  
-var current_idx;
-
-function load(photo) {
-  var key = '08be316ee5aaa43c0fb40c3d496d4a3c';
-  var url = "http://api.flickr.com/services/rest/?format=json&nojsoncallback=1&method=flickr.photos.getInfo&api_key="+key+"&photo_id="+photo.id;
-  var req = new XMLHttpRequest();
-  req.open('GET', url, true);
-  req.onreadystatechange = function() {
-    if (req.readyState == 4) {
-      var res = JSON.parse(req.responseText)
-      console.log(res)
-      p = res.photo
-      var h = 'http://farm'+p.farm+'.static.flickr.com/'+p.server+'/'+p.id+'_'+p.secret+'_b.jpg';
-    	document.getElementById('content').innerHTML = "<img src='"+h+"'/>";
-    	var info = document.getElementById('info');
-    	info.innerText = p.title._content || 'untitled';
-    	info.setAttribute('href', p.urls.url[0]._content)
-    }
-  }
-  req.send();
+function show(photo) {
+  console.log(photo, photo.usage.canblog, photo.usage.candownload)
+  document.getElementById('photo').setAttribute('src', photo.src);
+  var title = document.getElementById('title');
+  title.innerText = photo.title._content || 'untitled';
+  title.setAttribute('href', photo.urls.url[0]._content);
+  document.getElementById('buddyicon').setAttribute('src', photo.buddyicon);
+  document.getElementById('owner').setAttribute('href', 'http://www.flickr.com/photos/'+photo.owner.nsid+'/');;
+  document.getElementById('buddyicon').setAttribute('title', photo.owner.realname);;
 }
 
 function init() {
-  var photos = chrome.extension.getBackgroundPage().photos;
-  current_idx = Math.floor(Math.random()*photos.length);
-  load(photos[current_idx]);
+  show(chrome.extension.getBackgroundPage().getNext());
+
   document.addEventListener('keypress', function(e) {
     if (e.keyCode==106) {
-      current_idx = (current_idx + 1) % photos.length;
-      load(photos[current_idx]);
+      show(chrome.extension.getBackgroundPage().getNext());
     }
     if (e.keyCode==107) {
-      current_idx = (current_idx - 1 + photos.length) % photos.length;
-      load(photos[current_idx]);
+      // current_idx = (current_idx - 1 + photos.length) % photos.length;
+      // load(photos[current_idx]);
     }
   }, true);
 };
@@ -80,16 +67,30 @@ html, body, #bg, #bg table, #bg td {
     min-height:50%;
     min-width:50%;
 }
-#info {
-  background: rgba(0,0,0,0.5);
-  bottom: 50px;
-  color: #fff;
+#title {
+  background: rgba(0,0,0,0.9);
+  font: 16px "Helvetica Neue", "Helvetica", Arial, sans-serif;
+  font-weight: lighter;
+  bottom: 0px;
   width: 100%;
-  font-size: 24px;
-  padding: 1em;
+  height: 32px;
+  left: 48px;
+  padding-top: 16px;
+  padding-left: 10px;
   position: fixed;
+}
+
+#info #owner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+}
+
+#info a {
+  color: #fff;
   text-decoration: none;
 }
+
 </style> 
 </head> 
 <body> 
@@ -97,11 +98,11 @@ html, body, #bg, #bg table, #bg td {
       <div>
           <table cellspacing="0" cellpadding="0">
               <tr>
-                  <td id="content"></td>
+                  <td><img id="photo"></td>
               </tr>
           </table>
       </div>
   </div>
-  <a id="info"></a>
+  <div id="info"><a id="owner"><img id="buddyicon"><span id="name"></span></a><a id="title"></a></div>
 </body> 
 </html>
